@@ -3,7 +3,7 @@ const s3 = new AWS.S3();
 const { v4: uuidv4 } = require("uuid");
 const mysql_db = require('./../datasources/mysql');
 import { getSession } from 'next-auth/react';
- 
+import { isValidPhoneNumber } from '../../../../lib/validate-phone'
 
 const smsResolvers = {
 Query: {
@@ -62,16 +62,27 @@ throw new Error(err.message);
 
 
 
-uploadGroupContacts: async (_, { contacts }, __) => {
+uploadGroupContacts: async (_, { contacts }, __) => {   
+// VALIDATE PHONE NUMBERS
 
-console.log("uploadGroupContacts")
+const _contacts=contacts
+let i=1;
+for (const contact of _contacts) {
+
+const [c_rows] = await mysql_db.execute('SELECT country FROM groups WHERE id = ?', [contact.group]);
+const country = c_rows[0]; 
+if(contact && !isValidPhoneNumber(contact.phone,country.country)){
+return {message:"Invalid number format on line: "+i,created:false}  
+}
+i++
+}
+
 const results = [];
 let insertedRows=0;
 
-for (const contact of contacts) {
-console.log("contact",contact)
+return {message:"Numbers added successfully: ",created:true}
 
-}
+
 return
 const [rows] = await mysql_db.execute(
 'SELECT * FROM contacts WHERE phone = ? AND group = ?',[contact.phone,contact.group],

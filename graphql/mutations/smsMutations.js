@@ -3,7 +3,10 @@ import { gql } from '@apollo/client';
 
 export const UPLOAD_GROUP_CONTACTS=gql`
  mutation UploadGroupContacts($contacts:[ContactUpload!]!) {
-    uploadGroupContacts(contacts:$contacts)
+    uploadGroupContacts(contacts:$contacts) {
+    message
+    created
+  }
   }
 `;
   

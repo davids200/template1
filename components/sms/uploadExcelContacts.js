@@ -11,14 +11,14 @@ import { FaFileExcel } from 'react-icons/fa'
 
 export default function UploadExcelContacts() {
 const [file, setFile] = useState(null); 
-const [selectedGroup, setselectedGroup] = useState('') 
+const [selectedGroup, setSelectedGroup] = useState('') 
 
 const   { isAuthenticated,user } = useSelector(state => state.user);
 const dispatch = useDispatch()
 const [uploadGroupContacts] = useMutation(UPLOAD_GROUP_CONTACTS);
 
 const { loading, error, data } = useQuery(GET_ALL_GROUPS, {
-  variables: { limit: 1000, offset:0 }
+variables: { limit: 1000, offset:0 }
 });
  
 
@@ -45,7 +45,7 @@ for (let i = 0; i < rows.length;) {
   const obj = {
     phone: row[Object.keys(row)[0]].toString(),
     name: row[Object.keys(row)[1]].toString(),
-    group:'group1',
+    group:selectedGroup.value,
     user:user.id,
     role:user.role,
   };
@@ -58,9 +58,13 @@ variables: {
 contacts,
 },
 });
-if(submitted) dispatch(toastSuccess("Success")) 
-setselectedGroup(null)
+if(submitted?.data?.uploadGroupContacts.created) 
+dispatch(toastSuccess(submitted?.data?.uploadGroupContacts.message)) 
+else{
+dispatch(toastError(submitted?.data?.uploadGroupContacts.message)) 
+setSelectedGroup(null)
 setFile(null) 
+}
 }
 reader.readAsArrayBuffer(selectedFile);
 }
@@ -95,7 +99,7 @@ Group Name
 <Select className=""
 options={options}
 value={selectedGroup}
-onChange={option => setselectedGroup(option)}
+onChange={option => setSelectedGroup(option)}
 />      
 </div>
 {(!selectedGroup) && <em className='text-yellow-500 mb-2'>Select group!</em>

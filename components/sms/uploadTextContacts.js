@@ -8,6 +8,7 @@ import { toastSuccess,toastError } from '../../redux/slices/toastSlice';
 import Select from '../../components/sms/SelectGroup'
 import { FaFileAlt } from 'react-icons/fa'
 
+
 export default function UploadTextContacts() {
 
 const [file, setFile] = useState(null); 
@@ -30,8 +31,9 @@ const contactList = [];
 reader.onload = async function(event) {
 const contents = event.target.result;
 const lines = contents.split('\n');
+
 lines.forEach(function(phone) {
- 
+  
 const item = {
 user:user.id,
 role:user.role,
@@ -42,13 +44,17 @@ name:phone
 contactList.push(item); 
 
 });
-console.log(contactList);
+ 
 const submitted = await uploadGroupContacts({
 variables: {
 contacts:contactList,
 },
 });
-if(submitted) dispatch(toastSuccess("Success")) 
+if(submitted?.data?.uploadGroupContacts.created) 
+dispatch(toastSuccess(submitted?.data?.uploadGroupContacts.message)) 
+else
+dispatch(toastError(submitted?.data?.uploadGroupContacts.message)) 
+
 setselectedGroup(null)
 setFile(null) 
 };

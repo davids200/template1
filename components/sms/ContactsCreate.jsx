@@ -34,9 +34,9 @@ label: group.name,
 
 const handleSubmit = async(event) => {
 event.preventDefault();  
-const isPhoneValid=isValidPhoneNumber(phone.value,phone.code.toUpperCase())
+//const isPhoneValid=isValidPhoneNumber(phone.value,phone.code.toUpperCase())
 
-if(!selectedGroup.value || !isPhoneValid){
+if(!selectedGroup.value || !phone.isValid){
 alert("Missing required fields")
 return
 }

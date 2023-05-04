@@ -67,7 +67,7 @@ type Query {
   }
 
   type Mutation {  
-  uploadGroupContacts(contacts: [ContactUpload!]!): Boolean
+  uploadGroupContacts(contacts: [ContactUpload!]!): CreateContactResponse
   createGroup(input: CreateGroupInput!): CreateGroupResponse!  
   createContact(input: CreateContactInput!): CreateContactResponse!  
   } 
