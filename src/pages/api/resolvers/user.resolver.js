@@ -1,26 +1,35 @@
-const bcrypt = require('bcrypt');
-const { createWriteStream } = require('fs');
+const bcrypt = require('bcrypt'); 
 import jwt from 'jsonwebtoken';
 const AWS = require('aws-sdk');
-const s3 = new AWS.S3();
-const { createReadStream } = require("fs");
+const s3 = new AWS.S3(); 
 const { v4: uuidv4 } = require("uuid");
-const mysql_db = require('./datasources/mysql');
+const mysql_db = require('./../datasources/mysql');
 const { S3_BUCKET_NAME, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION } = process.env;
- 
+import authMiddleware from '../middleware/authenticate'
  
 
-const resolvers = {
+const userResolvers = {
 Query: {
-  getAllUsers: async () => {
+  me: (parent, args, { currentUser }) => {
+    if (!currentUser) {
+      throw new Error('Not authenticated');
+    }
+
+    return currentUser;
+  },
+
+  getAllUsers: async (_,args, {currentUser,database}) => {
+   // const {mongo_db,mysql_db}=database
+
     const [rows, fields] = await mysql_db.query('SELECT * FROM users');
     return rows;
-  },
-  
+  }, 
 
 
-  getUserById: async (_, { id }) => {
-    const [rows] = await mysql_db.execute('SELECT * FROM Users WHERE id = ?', [id]);
+  getUserById: async (_, { id }, {currentUser,database}) => {
+    const {mongo_db,mysql_db}=database
+
+    const [rows] = await mysql_db.execute('SELECT * FROM users WHERE id = ?', [id]);
     return rows[0];
   },
 },
@@ -30,13 +39,12 @@ Query: {
 
 //export default async function handler(req, res) {
 Mutation:{
-  loginUser: async (_,input, context) => {
- // console.log("logUser",input)  
-  const  { email, password } = input
-
+  loginUser: async (_,{email,password},  {currentUser,database}) => {
+   
+  console.log("authMiddleware",authMiddleware)
 const [rows] = await mysql_db.execute('SELECT * FROM users WHERE email = ?', [email]);
 const user = rows[0];
-console.log("user.password",user.password) 
+//console.log("user user",user)
 if (!user) {
   throw new Error('Invalid username or password!'); 
 }
@@ -64,8 +72,9 @@ photo_url: user.photo_url
 
 
  
-createUser: async (_, { input }) => {   
+createUser: async (_, { input }, {currentUser,database}) => {   
 const {email}=input
+const {mongo_db,mysql_db}=database
  
 const query = `SELECT * FROM users WHERE email = '${input.email}'`;
 
@@ -129,7 +138,9 @@ else{
 
 
 
-uploadProfilePicture: async (_, { user,photo_url }) => {  
+uploadProfilePicture: async (_, { user,photo_url }, {currentUser,database}) => {  
+  const {mongo_db,mysql_db}=database
+
   const [rows] = await mysql_db.execute('SELECT * FROM users WHERE id = ?', [user]);
   const userr = rows[0]; 
   if (!userr) {
@@ -138,21 +149,15 @@ uploadProfilePicture: async (_, { user,photo_url }) => {
   
   try{
   const updated = await mysql_db.execute('UPDATE users set photo_url = ? WHERE id = ?', [photo_url,user]);
-  // if (updated.affectedRows>0) {
-  // console.log("profile updated successfully")
-  // return photo_url
-  // }  
-  // else{
-  //   throw new Error('Profile picture not updated!'); 
-  // }
+  
   }catch(err){
     console.log("resolver error",err)
   }
   },
   
 
-  updateUser: async (_, { user,input }) => {  
-    console.log("User input",input)
+  updateUser: async (_, { user,input }, {currentUser,database}) => {  
+    const {mongo_db,mysql_db}=database
 
     const [rows] = await mysql_db.execute('SELECT * FROM users WHERE id = ?', [user]);
     const userr = rows[0]; 
@@ -179,11 +184,15 @@ const userrr = rowss[0];
     }
     },
     
-      
 
-resetPassword: async (parent, { email }, context) => {
-console.log("resetpassword",email)
-const user = await context.db.collection('users').findOne({ email });
+ 
+
+
+
+
+resetPassword: async (parent, { email },  {currentUser,database}) => {
+  const {mongo_db,mysql_db}=database
+const user = await mongo_db.collection('users').findOne({ email });
 
 if (!user) {
   throw new Error('User not found');
@@ -220,7 +229,7 @@ return true;
 
 }
 }
-module.exports = resolvers;
+module.exports = userResolvers;
 
 
 

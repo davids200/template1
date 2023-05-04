@@ -11,6 +11,8 @@ export default async function handler(req, res) {
 const [rows] = await pool.execute('SELECT * FROM users WHERE email = ?', [email]);
 const user = rows[0];
 
+console.log("signing in",user)
+
 if (!user) {
 throw new Error('Invalid email or password');
 }

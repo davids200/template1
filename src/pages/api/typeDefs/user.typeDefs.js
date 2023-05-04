@@ -1,13 +1,14 @@
-const { gql } = require('apollo-server-micro');
+const { gql } = require('graphql-tag');
+//const { gql } = require('apollo-server-micro');
 
  
-const typeDefs = gql`
+const userSchema = gql`
 scalar UUID
 scalar DateTime
 
 
 type User {
-id: UUID
+id: UUID!
 name: String!
 email: String
 photo_url:String
@@ -18,8 +19,9 @@ role:UserRole
   }
 
 
+
 type UserLoginResponse{
-id: UUID
+id: UUID!
 name: String
 email: String
 photo_url:String
@@ -55,17 +57,21 @@ email: String!
 password: String!
 photo_url:String
 }
-
-
-
-
+ 
 enum UserRole {
   USER
   ADMIN
   STAFF
 }
  
+
+
+  type Context {
+    currentUser: User
+  }
+
   type Query {
+  me: User
   getUserById(id: UUID!): User
   getAllUsers: [User]! 
   }
@@ -80,4 +86,4 @@ enum UserRole {
   } 
 `;
 
-module.exports = typeDefs;
+module.exports = userSchema;

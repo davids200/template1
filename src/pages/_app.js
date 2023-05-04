@@ -1,5 +1,7 @@
 import '../styles/globals.css'
 import 'tailwindcss/tailwind.css'
+//import 'flag-icon-css/css/flag-icons.min.css';
+
 import { Provider } from 'react-redux'
  import { SessionProvider } from 'next-auth/react'
 import 'react-toastify/dist/ReactToastify.css';
@@ -11,14 +13,23 @@ import { ApolloClient, InMemoryCache, ApolloProvider, gql } from '@apollo/client
 //import { ApolloClient, InMemoryCache } from 'apollo-boost'
 
  
-
+import { offsetLimitPagination } from "@apollo/client/utilities";
+const cache = new InMemoryCache({
+  typePolicies: {
+    Query: {
+      fields: {
+        books: offsetLimitPagination(),
+      },
+    },
+  },
+});
  
 function MyApp({ Component, pageProps }) {
   const url="/api/graphql"
   
   const client = new ApolloClient({
     uri: url,
-    cache: new InMemoryCache(),
+    cache:new InMemoryCache()
   });
   
   

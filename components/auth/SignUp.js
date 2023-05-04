@@ -40,6 +40,7 @@ const SignupPage = () => {
   })  
 
   const handleSubmit = async (e) => {
+   
     const input={
       id:'abc',
       name:e.target.name.value,
@@ -156,7 +157,7 @@ transition duration-300">
 <span className="mr-2">
 <HiArrowNarrowRight size={20} />
 </span>
-Sign Up
+Sign Upp
 </button>  
 )
 }

@@ -55,7 +55,6 @@ callbackUrl: "/user/profile"
  
  
 if(response.ok){    
- 
 
 setLoading2(false) 
 

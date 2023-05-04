@@ -14,6 +14,7 @@ import {
   HttpLink,
   gql,
 } from '@apollo/client' 
+import { DataSync } from 'aws-sdk';
 /////////////////////////////////////////////////////////////
 
 export default NextAuth({
@@ -55,10 +56,12 @@ loginUser(email:$email,  password:$password) {
 }
 ` 
 try {
+ 
 const { data } = await client.mutate({
 mutation: LOGIN_USER,
 variables: { email, password },
 })
+ 
 return data
 }
 catch (err) {  
