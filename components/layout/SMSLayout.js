@@ -63,20 +63,20 @@ router.push('/user/login')
 
 
   return (
-    <div className="flex flex-col h-screen">
-      <header className="flex items-center justify-between bg-blue-900">
-        <div className="text-white font-bold text-xl flex mr-0">
- 
-<picture>
-<img src={user?.photo_url || defaultPhoto} width={60} height={62} alt={user?.name} className='' />
-</picture>  
-<span className='mx-3 my-auto'>ICT Giants</span>
-</div>
-      
+  <div className="flex flex-col absolute h-full w-screen">
+  <header className="flex items-center justify-between bg-blue-900 px-2">
+  <div className="text-white font-bold text-xl flex flex-row mr-0">
+
+  <picture>
+  <img src={user?.photo_url || defaultPhoto} width={60} height={62} alt={user?.name} className=' rounded-sm ' />
+  </picture>  
+  <span className='ml-3 my-auto'>ICT Giants</span>
+  </div>
+
   
 <nav className="hidden md:flex px-4 text-right">
-<Menu as="div" className="relative inline-block ">
-          <div>
+<Menu as="div" className="relative inline-block">
+          <div className=''>
             <Menu.Button className="inline-flex w-full justify-center items-center">
  
 <span className="mx-1 hidden md:block font-medium text-white">
@@ -496,15 +496,13 @@ List
               <p>SMS Billing</p>
             </div>
           </div>
-        </Link>
-
-
-
-      </div>
-        
+        </Link> 
+      </div> 
         </aside>
-        {children} 
-        <br></br>
+
+        <div className="p-2 overflow-auto h-full w-full flex">  {children}  </div> 
+        {/* <main className="flex-1 p-4">{children}</main> */}
+ 
       </div>
     </div>
   )

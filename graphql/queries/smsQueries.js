@@ -10,6 +10,7 @@ export const GET_ALL_GROUPS = gql`
       name
       country
       totalGroups
+      totalContacts
     }
   }
 `;

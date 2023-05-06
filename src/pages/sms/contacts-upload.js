@@ -43,11 +43,10 @@ event.preventDefault();
 
 return (<>
 <SMSLayout >
-<div className='flex-1 justify-center  items-center'>
-
+<div className='mx-auto rounded-md bg-blue-900 shadow-md py-auto w-96 md:w-screen h-full sm:w-screen py-2 text-white'>
 <div className="flex items-center justify-center mt-10">
   <div className=" mb-5">
- <h3 className='text-lg text-blue-800 mb-3 uppercase'>Upload contacts from a file</h3>
+ <h3 className='text-lg text-white mb-3 uppercase'>Upload contacts from a file</h3>
  <hr className='mb-5'></hr>
 
 <div className='mb-5'> 

@@ -13,17 +13,22 @@ const session = await getSession(context.req, context.res);
 console.log("context in resolver",context)
  
 
-        if (limit) {
-        const [rows] = await mysql_db.execute('SELECT COUNT(*) AS totalGroups FROM groups');
-        const totalGroups = rows[0].totalGroups;
-           
-        
-            const [results, fields] = await mysql_db.query(`SELECT name,id,country FROM groups order by id desc LIMIT ?,?`, [offset, limit]);
-            results[0].totalGroups=totalGroups
-            
-            return results;
-            }
-          },
+if (limit) {
+const [rows] = await mysql_db.execute('SELECT COUNT(*) AS totalGroups FROM groups');
+const totalGroups = rows[0].totalGroups;
+
+
+//const [results, fields] = await mysql_db.query(`SELECT name,id,country FROM groups order by id desc LIMIT ?,?`, [offset, limit]);
+const [results, fields] = await mysql_db.query(`
+SELECT groups.id, groups.name,groups.country, COUNT(contacts.id) AS totalContacts
+FROM groups LEFT JOIN contacts ON groups.id = contacts.group_id GROUP BY groups.id order by id desc LIMIT ?,?`, [offset, limit]);
+
+
+results[0].totalGroups=totalGroups
+console.log("results[0]. results[0].",results)
+return results;
+}
+},
 },
  
     
@@ -143,7 +148,18 @@ createContact: async (_, {input},__) => {
     
     },
 
-}
+
+
+         
+sendGroupLists: async (_, {input},__) => {
+   console.log("group lists",input)
+   
+   return {message:"group lists in resolver!",created:true}
+   return {message:"group lists in resolver!",created:false}   
+        },
+
+
+} // mutations
          
  
 } 

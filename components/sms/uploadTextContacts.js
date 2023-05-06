@@ -7,6 +7,7 @@ import { useDispatch,useSelector } from 'react-redux';
 import { toastSuccess,toastError } from '../../redux/slices/toastSlice';
 import Select from '../../components/sms/SelectGroup'
 import { FaFileAlt } from 'react-icons/fa'
+//import {GroupOptions} from '../../lib/data/groups'
 
 
 export default function UploadTextContacts() {
@@ -63,9 +64,9 @@ reader.readAsText(selectedFile);
 }
  
  
-const options = data.groups.map(group => ({
+const GroupOptions = data.groups.map(group => ({
   value: group.id,
-  label: group.name,
+  label: group.name.toUpperCase()+" ("+group.totalContacts+")",
   }))
 
 
@@ -86,7 +87,7 @@ Group Name
 <div className="w-full">
 <div className="flex items-center justify-center mb-4 w-full">
 <Select className=""
-options={options}
+options={GroupOptions}
 value={selectedGroup}
 onChange={option => setselectedGroup(option)}
 />      

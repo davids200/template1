@@ -41,26 +41,26 @@ function handleDeleteConfirm() {
   setShowDeletePrompt(false);
 }
 
-  return (
-    <div className=''>
-      <div className=' text-black m-2 rounded-md shadow-md p-2 h-full overflow-y-auto'>
-      
-      
-      {showDeletePrompt && (
-        <div className='bg-red-700 p-2 rounded-md modal'>
-          <p className='px-5 mb-5 text-white items-center'>Are you sure you want to delete this?</p>
-          <div className='flex justify-evenly px-5'>
-          <button onClick={handleDeleteConfirm} className='py-1 px-2 rounded bg-gray-100'>Yes</button>
-          <button onClick={() => setShowDeletePrompt(false)} className='py-1 px-2 rounded bg-gray-100'>No</button>
-          </div>
-        </div>
-      )}
+return (
+<div className=''>
+  <div className=' text-black m-2 rounded-md shadow-md p-2 bg-white'>
+  
+  
+  {showDeletePrompt && (
+    <div className='bg-red-700 p-2 rounded-md modal'>
+      <p className='px-5 mb-5 text-white items-center'>Are you sure you want to delete this?</p>
+      <div className='flex justify-evenly px-5'>
+      <button onClick={handleDeleteConfirm} className='py-1 px-2 rounded bg-gray-100'>Yes</button>
+      <button onClick={() => setShowDeletePrompt(false)} className='py-1 px-2 rounded bg-gray-100'>No</button>
+      </div>
+    </div>
+  )}
 
       
       
         {data.groups.map(group => (<>
-          <div key={group.id} className='flex justify-between border-b-2 mb-1 cursor-pointer hover:text-green-500'>
-          {group.name}  ({group.country})
+          <div key={group.id} className='flex justify-between bg-white hover:bg-gray-400 hover:text-white border-b-2 mb-1 cursor-pointer hover:text-green-500'>
+          <b>{group.name.toUpperCase()} ({group.totalContacts})</b> <i className='text-right'> {group.country}</i>
 
           <div className='btn text-red-200 cursor-pointer hover:text-red-500'><HiOutlineTrash onClick={()=>handleDelete(group)}/></div>
           </div>

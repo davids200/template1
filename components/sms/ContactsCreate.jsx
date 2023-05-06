@@ -24,10 +24,11 @@ const { loading, error, data } = useQuery(GET_ALL_GROUPS, {
 const [createContact] = useMutation(CREATE_CONTACT, {
   refetchQueries: [{ query: GET_ALL_GROUPS }],
 });
+ 
 
 const options = data?.groups?.map(group => ({
 value: group.id,
-label: group.name,
+label: group.name.toUpperCase()+" ("+group.totalContacts+")",
 }))
 
 
@@ -68,12 +69,12 @@ const response = await createContact({
 
 return (<>
  
-<div className='mb-5 mt-5 flex items-center justify-center text-lg text-blue-800 mb-3'>
-<h3>Add contact number(s)</h3>
+ <div className='w-full p-2 text-white'> 
+<h2>Add contact number(s)</h2>
 </div>
  
 
-<div className=" items-center justify-center">
+<div className=" items-center justify-center p-2">
   <div className=" mb-5">
 
 <form className="bg-gray-100 p-3 rounded-lg mt-2" onSubmit={handleSubmit}>

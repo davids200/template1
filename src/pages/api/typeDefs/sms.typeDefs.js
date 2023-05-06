@@ -18,6 +18,7 @@ type Group{
   name:String!
   country:String!
   totalGroups:Int
+  totalContacts:Int
 }
 type CreateGroupResponse{
   message:String!
@@ -49,6 +50,7 @@ input CreateContactInput {
   group:String!
 }
 
+
  
 type Query {
   books(offset: Int, limit: Int): [Book!]
@@ -69,7 +71,8 @@ type Query {
   type Mutation {  
   uploadGroupContacts(contacts: [ContactUpload!]!): CreateContactResponse
   createGroup(input: CreateGroupInput!): CreateGroupResponse!  
-  createContact(input: CreateContactInput!): CreateContactResponse!  
+  createContact(input: CreateContactInput!): CreateContactResponse! 
+  sendGroupLists(input:[String!]!,user:String!,role:String!):CreateContactResponse 
   } 
 `;
 

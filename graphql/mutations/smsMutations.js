@@ -28,3 +28,12 @@ mutation CreateContact($input: CreateContactInput!) {
 }
 `;
 
+
+export const SEND_GROUP_LISTS=gql`
+ mutation SendGroupLists($input:[String!]!,$user:String!,$role:String!) {
+  sendGroupLists(input:$input,user:$user,role:$role) {
+    message
+    created
+  }
+  }
+`;
