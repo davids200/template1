@@ -1,4 +1,5 @@
   const countries = [  
+    { "name": "Uganda", "code": "UG" },
     { "name": "Burundi", "code": "BI" },  
     { "name": "Comoros", "code": "KM" },  
     { "name": "Djibouti", "code": "DJ" },  
@@ -13,7 +14,7 @@
     { "name": "Seychelles", "code": "SC" },  
     { "name": "Somalia", "code": "SO" },  
     { "name": "Tanzania", "code": "TZ" },  
-    { "name": "Uganda", "code": "UG" }
+    
   
   ]
 

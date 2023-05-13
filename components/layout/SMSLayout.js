@@ -500,7 +500,7 @@ List
       </div> 
         </aside>
 
-        <div className="p-2 overflow-auto h-full w-full flex">  {children}  </div> 
+        <div className="p3 overflow-y-auto h-full w-screen flex-1">  {children}  </div> 
         {/* <main className="flex-1 p-4">{children}</main> */}
  
       </div>

@@ -7,6 +7,7 @@ import { useDispatch,useSelector } from 'react-redux';
 import { toastSuccess,toastError } from '../../redux/slices/toastSlice';
 import Select from '../../components/sms/SelectGroup'
 import { FaFileAlt } from 'react-icons/fa'
+import { useRef } from 'react';
 //import {GroupOptions} from '../../lib/data/groups'
 
 
@@ -16,10 +17,14 @@ const [file, setFile] = useState(null);
 const [selectedGroup, setselectedGroup] = useState('') 
 const   { isAuthenticated,user } = useSelector(state => state.user);
 const dispatch = useDispatch()
-const [uploadGroupContacts] = useMutation(UPLOAD_GROUP_CONTACTS);
+const [uploadGroupContacts] = useMutation(UPLOAD_GROUP_CONTACTS, {
+  refetchQueries: [{ query: GET_ALL_GROUPS }],
+});
+const fileInputRef = useRef(null);
 
 const { loading, error, data } = useQuery(GET_ALL_GROUPS, {
-  variables: { limit: 1000, offset:0 }
+  variables: { limit: 1000, offset:0 },
+  
 });
 
 function handleFileChange(event) {
@@ -51,29 +56,30 @@ variables: {
 contacts:contactList,
 },
 });
-if(submitted?.data?.uploadGroupContacts.created) 
-dispatch(toastSuccess(submitted?.data?.uploadGroupContacts.message)) 
+if(submitted?.data?.uploadGroupContacts?.created) 
+dispatch(toastSuccess(submitted?.data?.uploadGroupContacts?.message)) 
 else
-dispatch(toastError(submitted?.data?.uploadGroupContacts.message)) 
+dispatch(toastError(submitted?.data?.uploadGroupContacts?.message)) 
 
 setselectedGroup(null)
 setFile(null) 
 };
 reader.readAsText(selectedFile);
+fileInputRef.current.value = null;
 }
 }
  
  
-const GroupOptions = data.groups.map(group => ({
-  value: group.id,
-  label: group.name.toUpperCase()+" ("+group.totalContacts+")",
+const GroupOptions = data?.groups?.map(group => ({
+  value: group?.id,
+  label: group?.name?.toUpperCase()+" ("+group?.totalContacts+")",
   }))
 
 
 return (
-  <div className='p-4 mt-1 rounded-md  bg-gray-900 text-white'>
+  <div className='p-4 mt-1 rounded-md  bg-gray-900 text-black'>
 
-<b className='flex mb-6 text-white'><FaFileAlt size={25}/> 
+<b className='flex mb-6 text-black'><FaFileAlt size={25}/> 
 Text</b>
 <em className='text-yellow-400 mb-2'>The file should only container numbers in one column!
 </em>
@@ -81,7 +87,7 @@ Text</b>
 
 <form className=''> 
     
-<label className="mr-2 mt-3 block text-white font-bold  md:mb-0 pr-4">
+<label className="mr-2 mt-3 block text-black font-bold  md:mb-0 pr-4">
 Group Name
 </label>
 <div className="w-full">
@@ -102,6 +108,7 @@ onChange={option => setselectedGroup(option)}
 accept=".txt" 
 onChange={handleFileChange} 
 className='rounded-md cursor-pointer'
+ref={fileInputRef}
 disabled={!selectedGroup}
 />
  

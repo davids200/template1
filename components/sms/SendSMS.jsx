@@ -6,11 +6,15 @@ import {GET_ALL_GROUPS} from '../../graphql/queries/smsQueries'
 import { SEND_GROUP_LISTS }  from '../../graphql/mutations/smsMutations'
 import { useDispatch,useSelector } from 'react-redux';
 import { toastSuccess,toastError } from '../../redux/slices/toastSlice';
+import CountrySelect from '../common/countries/CountrySelect';
+import { countries } from '../common/countries/countries'; 
+
+
 
 export default function SendSMS() {   
-const [text, setText] = useState('');
+const [message, setMessage] = useState('');
 const [selectedContacts, setSelectedContacts] = useState(0);
-const [pastedContactsLength, setpastedContactsLength] = useState(0);
+const [pastedContactsLength, setPastedContactsLength] = useState(0);
 const [scheduledMessage, setScheduledMessage] = useState(false);
 const [date, setDate] = useState(new Date());
 const [ submitting,setSubmitting ]=useState(false)
@@ -19,67 +23,126 @@ const [selectedCheckboxes, setSelectedCheckboxes] = useState([]);
 const [pastedNumbers, setPastedNumbers] = useState([]);
 let textareaRef = useRef(null);
 
- //console.log("start",pastedNumbers)
-const [count, setCount] = useState(0);
+//const [count, setCount] = useState(0);
+const [country,setCountry]=useState(countries[0].code)
+const handleCountryChange = (country) => {
+setCountry(country) 
+};
 
 const   { isAuthenticated,user } = useSelector(state => state.user);
 const dispatch=useDispatch()
 
 const [sendGroupLists] = useMutation(SEND_GROUP_LISTS, {
   refetchQueries: [{ query: GET_ALL_GROUPS }],
+  
 });
 
 let [offset, setOffset] = useState(0);  
 const { loading, error, data } = useQuery(GET_ALL_GROUPS, {
-  variables: { limit: 1000, offset }
+  variables: { limit: 1000, offset },
+  // fetchPolicy: 'cache-and-network',
 });
 
 
 const initialValues = {
     senderId: '', 
-    message: text,
+    message,
     scheduledMessage: scheduledMessage,
     scheduledTime:'',
     selectedGroups:[]
   };
 
   const validationSchema = Yup.object({
-    senderId: Yup.string().required('Sender ID is required'),
-    message: Yup.string().required('Message should be atleast 5 characters').max(160, 'Message must be at most 160 characters'), 
+    senderId: Yup.string().required('Sender ID is required!').min(3, 'Sender ID must be at least 3 characters long!'),
+    phones: Yup.string().required('No recipient numbers provided!').min(3, 'Invalid phone number provided!'),
+    message: Yup.string().required('Message should be atleast 5 characters!').max(160, 'Message must be at most 160 characters!'), 
   });
   
-  const formik = useFormik({
-    initialValues,
-    validationSchema,
-    onSubmit: async (values) => {
-        values.senderId=values.senderId.toUpperCase()
-        setSubmitting(true)
-        
-
-        const now = new Date(values.scheduledTime);
+const formik = useFormik({
+initialValues,
+validationSchema,
+onSubmit: async (values) => {
+values.senderId=values.senderId.toUpperCase()
+setSubmitting(true)
+ 
+const now = new Date(values.scheduledTime);
 const month = now.getMonth(); // 0-indexed, so January is 0
 const day = now.getDate();
 const time = now.toLocaleTimeString(); // format the time as a string
 
-        setSubmitting(false)
-        try {
-         // const response = await axios.post("/api/submit-form", values);
-          // handle success
-        } catch (error) {
-            setSubmitting(false)
-          // handle error
-        }
-      },
-  });
+setSubmitting(false)
+
+try {
+//////////// SUBMIT GROUPS SELECTED  
+if(selectedOption==='groups'){
+if(selectedCheckboxes.length<1){
+alert("Error, no group selected!")
+return
+}
+
+const response = await sendGroupLists({
+variables: {
+input:selectedCheckboxes,user:user.id,role:user.role
+},
+});    
+
+if(response.data.sendGroupLists.created){
+dispatch(toastSuccess(response.data.sendGroupLists.message))
+}  
+else{
+dispatch(toastError(response.data.sendGroupLists.message))
+}
+}// WHEN GROUPS CHECKED
+  
+//WHEN PASTED NUMBERS
+if(selectedOption==="paste"){ 
+const textAreaValue = document.getElementById('phones').value;   
+if(textAreaValue.length===0){
+alert("Error, no numbers present!")
+document.getElementById('phones').value="";
+document.getElementById('phones').focus();
+return
+}
+
+const response = await sendGroupLists({
+variables: {
+input:pastedNumbers,user:user.id,role:user.role
+},
+});      
+console.log("pasted response...response",response)
+
+if(response.data.sendGroupLists.created){
+dispatch(toastSuccess(response.data.sendGroupLists.message))
+}  
+else{
+dispatch(toastError(response.data.sendGroupLists.message))
+}
+}//PASTED NUMBERS
+
+
+} catch (error) {
+  console.error("submit error",error.message)
+setSubmitting(false)
+// handle error
+}
+},
+});
 
  
 function handleMessageChange(event) {
-setText(event.target.value);
+setMessage(event.target.value);
 formik.values.message=event.target.value
 }
 
 function handleOptionChange(event) {
+setPastedNumbers([])
+setSelectedCheckboxes([])
+setSelectedContacts(0)
+setPastedContactsLength(0)
 setSelectedOption(event.target.value);
+const phoneTextArea=document.getElementById('phones')
+if(event.target.value==='paste' && phoneTextArea)
+phoneTextArea.focus();
 } 
 
 function handleScheduleChange(event){    
@@ -116,74 +179,24 @@ return selectedCheckboxes.indexOf(value) >= 0;
 
 //SEND GROUP LISTS TO SEND MESSAGE
 
-const sendMessage = async(event) => {
-event.preventDefault(); 
-
-console.log("send message...")
-
-if(selectedOption==='groups'){
-if(selectedCheckboxes.length<1){
-alert("Error, no group selected!")
-return
-}
-
-const response = await sendGroupLists({
-variables: {
-input:selectedCheckboxes,user:user.id,role:user.role
-},
-});    
-console.log("CHECKED response...response",response)
-
-if(response.data.sendGroupLists.created){
-dispatch(toastSuccess(response.data.sendGroupLists.message))
-}  
-else{
-dispatch(toastError(response.data.sendGroupLists.message))
-}
-}// WHEN GROUPS CHECKED
-
-
-
-
-//WHEN PASTED NUMBERS
-if(selectedOption==="paste"){ 
-const textAreaValue = document.getElementById('phones').value;   
-if(textAreaValue.length===0){
-alert("Error, no numbers present!")
-document.getElementById('phones').value="";
-document.getElementById('phones').focus();
-return
-}
-
-const response = await sendGroupLists({
-variables: {
-input:pastedNumbers,user:user.id,role:user.role
-},
-});      
-console.log("pasted response...response",response)
-
-if(response.data.sendGroupLists.created){
-dispatch(toastSuccess(response.data.sendGroupLists.message))
-}  
-else{
-dispatch(toastError(response.data.sendGroupLists.message))
-}
-}//PASTED NUMBERS
-} 
+// const sendMessage = async(event) => {
+// event.preventDefault();  
+// } 
 
 function handlePastedPhonesChange(event) {
 const lines = event.target.value.split('\n');
 const textAreaValue = document.getElementById('phones').value;  
-if(textAreaValue.length>=0) {
-setpastedContactsLength(lines.length)
+
+if(textAreaValue.length===0){
+  setPastedContactsLength(0)
+}
+if(textAreaValue.length>0) {
 setPastedNumbers(lines);
+setPastedContactsLength(lines.length)
 
 console.log("setPastedNumbers",pastedNumbers)
 console.log("setpastedContactsLength",pastedContactsLength)
-}
-else{
-setpastedContactsLength(0)
-}
+} 
 }
  
 
@@ -193,7 +206,7 @@ function handlePaste(event) {
   console.log("event.target.value",event.target.value)
   const lines = event.target.value.split('\n');
   setPastedNumbers(lines);
-  setpastedContactsLength(pastedNumbers.length)
+  setPastedContactsLength(pastedNumbers.length)
 }
 
 
@@ -203,8 +216,7 @@ function handlePaste(event) {
   return (
     <>
   
-
-      <form  onSubmit={formik.handleSubmit} className="w-full px-1 py-6 bg-gray-200 shadow-md rounded-md">
+      <form  onSubmit={formik.handleSubmit} className="px-2 py-4 bg-gray-200 shadow-md rounded-md text-blue-700">
      
       <div className="mb-4">
         <label htmlFor="senderId" className="block font-medium text-gray-700 mb-1">
@@ -214,17 +226,19 @@ function handlePaste(event) {
           type="text"
           id="senderId"
           name="senderId"
-          className={`p-2 uppercase  block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 ${formik.touched.senderId && formik.errors.senderId ? 'border-red-500' : ''}`}
+          className={` uppercase p-1 block w-screen border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 ${formik.touched.senderId && formik.errors.senderId ? 'border-red-500' : ''}`}
           value={formik.values.senderId}
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
         />
-        {formik.touched.senderId && formik.errors.senderId && <p className="mt-2 text-red-500 text-sm">{formik.errors.senderId}</p>}
+        {formik.errors.senderId && <p className="mt-2 text-red-500 text-sm">{formik.errors.senderId}</p>}
       </div>
      
+
+
      
-      <div className="flex flex-row justify-start gap-5 items-center">
-  <label className="inline-flex items-center">
+      <div className="flex flex-row items-baseline justify-between">
+  <label className="inline-flex flex-row items-center px-1  overflow-auto ">
     <input type="radio" 
     className="form-radio" 
     name="radio"  
@@ -232,10 +246,17 @@ function handlePaste(event) {
     checked={selectedOption === "paste"}
     onChange={handleOptionChange}
     />
-   <span className={selectedOption==="paste" && 'text-blue-900 ml-1 border-b-4 border-blue-800' || "ml-1"}>Paste Numbers</span>
+
+    
+<div  className={selectedOption==="paste" && 'flex  items-center text-blue-800 ml-1 bg-blue-50 p-2 rounded-md border-b-4 border-blue-700'  || 'flex  items-center'}>
+   <span  className={selectedOption==="paste" && 'flex flex-col justify-between' || "flex items-center text-blue-800 ml-1"}>
+   Paste Numbers  &nbsp;
+   </span>
+   <span className={selectedOption==="paste" && 'mb-0 text-blue-800' || 'flex text-blue-800'}><CountrySelect countries={countries} onChange={handleCountryChange} /></span>
+   </div>  
   </label>
 
-  <label className="inline-flex items-center ">
+  <label className="inline-flex items-center px-1">
     <input type="radio" 
     className="form-radio" 
     name="radio" 
@@ -244,7 +265,9 @@ function handlePaste(event) {
     onChange={handleOptionChange}
     size={40}
     />
-   <span className={selectedOption==="groups" && 'text-blue-900 ml-1  border-b-4 border-blue-800' || "ml-1"}>From Groups</span>
+    <div  className={selectedOption==="groups" && 'flex  items-center text-blue-800 ml-1 bg-blue-50 p-2 rounded-md border-b-4 border-blue-700'  || 'flex  items-center'}>
+   <span className={selectedOption==="groups" && 'flex justify-center text-blue-800 ml-1 ' || "flex items-center ml-1 text-blue-800"}>From Groups</span>
+   </div>
   </label>
  
 </div>
@@ -254,8 +277,9 @@ function handlePaste(event) {
  
 { (selectedOption==="paste") &&
 <div className="mb-4">
-<label htmlFor="message" className="block font-medium text-gray-700 mb-2 px-2">
-Phone numbers
+<label htmlFor="phones" className="block font-medium text-gray-700 mb-2 pr-2 mt-4">
+
+<h3 className='pl-1 mb-2 bg-blue-600 text-white rounded'>Paste numbers of the same country. </h3>
 </label>
 <textarea
 id="phones"
@@ -264,16 +288,23 @@ rows={5}
 name="phones"
 ref={textareaRef} 
 onPaste={handlePaste}
-onKeyDown={(event) => {handlePastedPhonesChange(event); formik.handleChange; }} 
-className={` p-1 block w-full h-32 border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 resize-none ${formik.touched.message && formik.errors.phones ? 'border-red-500' : ''}`} 
+onChange={(event) => {handlePastedPhonesChange(event); formik.handleChange; }} 
+className={` p-1 block w-full h-64 border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 resize-none ${formik.touched.phones && formik.errors.phones ? 'border-red-500' : ''}`} 
  placeholder={`256701xxxxxx
 25677xxxxxxx
 256392xxxxxx
 256712xxxxxx`}
-// style={{ whiteSpace: "pre-wrap" }}
 onBlur={formik.handleBlur}
-/>        
-{formik.touched.phones && text.length<3  && formik.errors.phones && <p className="w-screen mt-2 text-red-500 text-sm">{formik.errors.phones}</p>}
+/>
+ 
+<div className=' bg-black text-white pl-1 rounded mt-2'>
+<div className='flex justify-between px-2'>
+<div>{(selectedOption==='paste' && pastedContactsLength>0) && <>Total numbers: <b>{pastedContactsLength}</b></>} </div>
+</div> 
+</div>
+ 
+ 
+{selectedOption==='paste' && (formik.errors.phones && (pastedContactsLength===0 || (document.getElementById("phones")?.value)?.length<9)) && <p className="w-screen mt-2 text-red-500 text-sm">{formik.errors.phones}</p>}
 </div>
 }
 
@@ -282,11 +313,11 @@ onBlur={formik.handleBlur}
 { (selectedOption==="groups") &&
 <div className=''>
 <h3 className='pl-1 mb-2 bg-blue-600 text-white rounded'>Select Groups</h3>
-<div className='bg-white rounded-md h-64 overflow-y-auto bg-gray-300'>
+<div className='flex flex-col bg-white rounded-md h-64 overflow-y-auto overflow-x-hidden text-blue-800'>
 
 
-{checkboxOptions.map(({ value,groupContacts, label }) => (
-<label key={value} className="inline-flex items-center w-screen md:w-screen pl-2 mt-2">
+{checkboxOptions?.map(({ value,groupContacts, label }) => (
+<label key={value} className="inline-flex items-start md:w-screen pl-2 mt-2 text-blue-800">
 
 <input
 type="checkbox"
@@ -301,7 +332,6 @@ setSelectedContacts(selectedContacts-groupContacts)
 setSelectedContacts(selectedContacts+groupContacts)
 }
 
-
 const isChecked = e.target.checked;
 setSelectedCheckboxes((prevSelectedCheckboxes) => {
 if (isChecked) {
@@ -311,34 +341,29 @@ return prevSelectedCheckboxes.filter((v) => v !== value);
 }
 });
 }}
-className="form-checkbox h-4 w-4 rounded text-gray-600"
+className="form-checkbox h-5 w-4 rounded-xl text-blue-800"
 />
-
-<span className="ml-2 text-gray-700">{label}</span>
+<span className="ml-2  text-blue-800 font-italic">{label}</span>
 </label>
 ))}
 
-</div>  
+</div> 
+{selectedOption==='groups' && selectedCheckboxes.length===0 && <p className="w-screen mt-2 text-red-500 text-sm">Select groups!</p>}
+
+
 </div> 
 }  
 
 <div className=' bg-black text-white pl-1 rounded mt-2'>
-
 <div className='flex justify-between px-2'>
-<div>{(selectedOption==='groups') && <>Total Contacts: <b>{selectedContacts}</b></>}
-</div></div>
- 
-{/* 
-<div className='flex justify-between px-2'>
-<div>{(selectedOption==='paste') && <div>Total Contacts: <b>{pastedContactsLength}</b></div>}
-</div></div> */}
-
+<div>{(selectedOption==='groups') && selectedCheckboxes.length>0 && <>Total numbers: <b>{selectedContacts}</b></>} </div>
+</div> 
 </div>
 
 
-<div className="mb-4">
-        <label htmlFor="message" className="block font-medium text-gray-700 mb-2">
-          Message {pastedContactsLength}
+<div className="mb-4 mt-2"> country: {country}
+        <label htmlFor="message" className="block font-medium text-blue-800 mb-2">
+          Message 
         </label>
 
 <textarea
@@ -350,8 +375,11 @@ className={` p-1 block w-full h-32 border-gray-300 rounded-md shadow-sm focus:bo
 onChange={handleMessageChange}
 onBlur={formik.handleBlur}
 />
-<p className="mt-2 text-orange-600 text-md">{text.length} / 160</p>
-{formik.touched.message && text.length<3  && formik.errors.message && <p className="mt-2 text-red-500 text-sm">{formik.errors.message}</p>}
+{(message.length<160) && <p className="flex justify-end mt-2 text-green-900 text-md"><b>{message.length} / 160</b></p>}
+{(message.length>159) && <p className="flex justify-end mt-2 text-red-700 text-md"><b>{message.length} / 160</b></p>}
+
+
+{formik.touched.message && message.length<3 && formik.errors.message && <p className="mt-2 text-red-500 text-sm">{formik.errors.message}</p>}
 </div>
 
 
@@ -394,9 +422,9 @@ className="block w-full px-4 py-2 text-gray-700 placeholder-gray-400 border bord
 
 <div className="mt-6"> 
 <button type="submit" 
-// disabled={submitting || formik.errors.message || formik.errors.phones || formik.errors.senderId}
+ disabled={submitting || formik.errors.message || formik.errors.phones || formik.errors.senderId}
 className="px-4 py-2 cursor-pointer bg-indigo-500 text-white rounded-md hover:bg-indigo-600 focus:outline-none focus:bg-indigo-600"
-onClick={sendMessage}
+//onClick={sendMessage}
 >
 Send SMS
 </button>

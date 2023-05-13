@@ -8,6 +8,7 @@ import { useDispatch,useSelector } from 'react-redux';
 import { toastSuccess,toastError } from '../../redux/slices/toastSlice';
 import Select from '../../components/sms/SelectGroup'
 import { FaFileExcel } from 'react-icons/fa'
+import { useRef } from 'react';
 //import {GroupOptions} from '../../lib/data/groups'
 
 export default function UploadExcelContacts() {
@@ -17,9 +18,11 @@ const [selectedGroup, setSelectedGroup] = useState('')
 const   { isAuthenticated,user } = useSelector(state => state.user);
 const dispatch = useDispatch()
 const [uploadGroupContacts] = useMutation(UPLOAD_GROUP_CONTACTS);
+const fileInputRef = useRef(null);
 
 const { loading, error, data } = useQuery(GET_ALL_GROUPS, {
-variables: { limit: 1000, offset:0 }
+variables: { limit: 1000, offset:0 },
+// fetchPolicy: 'cache-and-network',
 });
  
 
@@ -68,14 +71,15 @@ setFile(null)
 }
 }
 reader.readAsArrayBuffer(selectedFile);
+fileInputRef.current.value = null;
 }
 } 
 
 
 
-const GroupOptions = data.groups.map(group => ({
-  value: group.id,
-  label: group.name.toUpperCase()+" ("+group.totalContacts+")",
+const GroupOptions = data?.groups?.map(group => ({
+  value: group?.id,
+  label: group?.name?.toUpperCase()+" ("+group?.totalContacts+")",
   }))
 
 
@@ -112,6 +116,7 @@ onChange={option => setSelectedGroup(option)}
 accept=".xls,.xlsx,.csv" 
 onChange={handleFileChange}  
 className='rounded-md'
+ref={fileInputRef}
 disabled={!selectedGroup}
 />
 

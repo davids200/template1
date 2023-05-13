@@ -13,11 +13,11 @@ const session = await getSession(context.req, context.res);
 console.log("context in resolver",context)
  
 
-if (limit) {
+if (limit) { 
 const [rows] = await mysql_db.execute('SELECT COUNT(*) AS totalGroups FROM groups');
 const totalGroups = rows[0].totalGroups;
 
-
+console.log("context in ffffffffffffff")
 //const [results, fields] = await mysql_db.query(`SELECT name,id,country FROM groups order by id desc LIMIT ?,?`, [offset, limit]);
 const [results, fields] = await mysql_db.query(`
 SELECT groups.id, groups.name,groups.country, COUNT(contacts.id) AS totalContacts
@@ -68,52 +68,61 @@ throw new Error(err.message);
 
 
 uploadGroupContacts: async (_, { contacts }, __) => {   
-// VALIDATE PHONE NUMBERS
 
-const _contacts=contacts
-let i=1;
-for (const contact of _contacts) {
-
-const [c_rows] = await mysql_db.execute('SELECT country FROM groups WHERE id = ?', [contact.group]);
-const country = c_rows[0]; 
-if(contact && !isValidPhoneNumber(contact.phone,country.country)){
-return {message:"Invalid number format on line: "+i,created:false}  
-}
-i++
-}
-
-const results = [];
-let insertedRows=0;
-
-return {message:"Numbers added successfully: ",created:true}
+    console.log("contacts",contacts)
+ 
+    if(contacts){
 
 
-return
-const [rows] = await mysql_db.execute(
-'SELECT * FROM contacts WHERE phone = ? AND group = ?',[contact.phone,contact.group],
-);
-if (rows.length > 0) {      
-results.push(rows[0]);
-} else {
 
-const id_code=uuidv4()
-const [insertResult] = await mysql_db.execute(
-'INSERT INTO contacts (id,user_id,name,phone,country,group) VALUES (?,?,?,?,?,?)',
-[id_code,'1',contact.name,contact.phone,contact.country,contact.group],
-);
-//results.push({ id: insertResult.insertId, name: contact.name });
-insertedRows++
-}
-//}
-await mysql_db.end(); 
-console.log("insertedRows",insertedRows)
-if(insertedRows>0){
-return true;
-}
 
-else{
-return false
-}
+        if(!contacts){
+            return
+         }   
+        
+        const _contacts=contacts
+        let i=1;
+        for (const contact of _contacts) {
+        
+        const [c_rows] = await mysql_db.execute('SELECT country FROM groups WHERE id = ? and user_id=?', [contact.group,contact.user]);
+        const country = c_rows[0]; 
+        if(contact && !isValidPhoneNumber(contact.phone,country.country)){
+        return {message:"Invalid number format on line: "+i,created:false}  
+        }
+        i++
+        }
+        
+        let insertedRows=0; let phone;
+        for (const cont of contacts) {
+        
+        const [rows] = await mysql_db.execute(
+        'SELECT * FROM contacts WHERE phone = ? AND group_id = ? AND user_id=?',[cont.phone,cont.group,cont.user],
+        );
+        if (rows.length > 0) {      
+        //skip
+        } else {
+        phone=cont.phone.replace(/\n/g, '')
+        const id_code=uuidv4()
+        await mysql_db.execute('INSERT INTO contacts (id,user_id,name,phone,group_id) VALUES (?,?,?,?,?)',
+        [id_code,cont.user,cont.name,cont.phone,cont.group],
+        );
+        //results.push({ id: insertResult.insertId, name: contact.name });
+        insertedRows++
+        }
+        }
+        await mysql_db.end(); 
+        
+        if(insertedRows>0){
+        return {message:"("+insertedRows+") contacts added successfully.",created:true}  
+        }
+        
+        else{
+            return {message:"No contact saved!",created:false}  
+        }
+
+
+    }
+
 },
 
 
