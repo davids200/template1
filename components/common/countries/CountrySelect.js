@@ -2,7 +2,7 @@ import { useState } from 'react';
 import cx from 'classnames'; 
 
 const CountrySelect = ({ countries, onChange,countryCode }) => {
- console.log("countryCodecountryCode",countryCode)
+// console.log("countryCodecountryCode",countryCode)
   const [selected, setSelected] = useState(countryCode);
 
   const handleChange = (event) => {

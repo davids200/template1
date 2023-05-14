@@ -4,6 +4,7 @@ const { v4: uuidv4 } = require("uuid");
 const mysql_db = require('./../datasources/mysql');
 import { getSession } from 'next-auth/react';
 import { isValidPhoneNumber } from '../../../../lib/validate-phone'
+import axios from 'axios'
 
 const smsResolvers = {
 Query: {
@@ -75,7 +76,6 @@ uploadGroupContacts: async (_, { contacts }, __) => {
 
 
 
-
         if(!contacts){
             return
          }   
@@ -126,37 +126,42 @@ uploadGroupContacts: async (_, { contacts }, __) => {
 },
 
 
-     
+    
 createContact: async (_, {input},__) => {
 //console.log("create contact resolver",input)
-  
-    const { name,phone,role,user,group } = input    
-    
-    const [rows] = await mysql_db.execute(
-    'SELECT * FROM contacts WHERE phone = ? AND group_id = ?',[phone,group],
-    );
-    if (rows.length > 0) {    
-    return {message:"Contact number already exists in this group!",created:false} 
-    } else {
-    
-    
-    const id_code=uuidv4()
-    
-    const [insertResult] = await mysql_db.execute(
-    'INSERT INTO contacts (id,user_id,group_id,phone,name) VALUES (?,?,?,?,?)',
-    [id_code,user,group,phone,name],
-    );
-    try{
-    if(insertResult.affectedRows)
-    return {message:"Contact added successfully.",created:true} 
-    }
-    catch(err){
-    throw new Error(err.message);   
-    }  
-        }
-    
-    },
 
+const { name,phone,role,user,group } = input    
+
+const [rows] = await mysql_db.execute(
+'SELECT * FROM contacts WHERE phone = ? AND group_id = ?',[phone,group],
+);
+if (rows.length > 0) {    
+return {message:"Contact number already exists in this group!",created:false} 
+} else {
+
+const id_code=uuidv4()
+
+const [insertResult] = await mysql_db.execute(
+'INSERT INTO contacts (id,user_id,group_id,phone,name) VALUES (?,?,?,?,?)',
+[id_code,user,group,phone,name],
+);
+try{
+if(insertResult.affectedRows)
+return {message:"Contact added successfully.",created:true} 
+}
+catch(err){
+throw new Error(err.message);   
+}  
+    }
+
+},
+
+// sendSMS:async(_,{input},__)=>{
+// const numbers = ['256774644449', '256708578167']
+// const message = 'Hello, world!'
+// const results = await sendMessage(numbers, message)
+// console.log(results)
+// },
 
 
          
@@ -174,6 +179,20 @@ sendGroupLists: async (_, {input},__) => {
 } 
 module.exports = smsResolvers;
 
+
+const sendMessage = async (numbers, message) => {
+    const requests = numbers.map(number => axios.post('http://www.egosms.co/api/v1/plain', {
+      to: number,
+      message: 'this is the message',
+      username:'ictgiants',
+      password:'P@ssw0rd',
+      sender:'ICT GIANTS'
+    }))
+  
+    const responses = await Promise.all(requests)
+    console.log("sms responses",responses)
+    return responses.map(response => response.data)
+  }
 
 
 
