@@ -1,11 +1,12 @@
 CREATE TABLE countries (
   id VARCHAR(50) PRIMARY KEY,
   name VARCHAR(255) NOT NULL UNIQUE,
-  isoCode VARCHAR(255) NOT NULL UNIQUE,
+  isocode VARCHAR(255) NOT NULL UNIQUE,
   numberCode VARCHAR(255) NOT NULL,
   created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   modified DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  price FLOAT NOT NULL
+  price DECIMAL(10, 2) NOT NULL,
+  flag_url VARCHAR(255) NOT NULL,
 );
 
 
@@ -34,6 +35,40 @@ CREATE TABLE contacts (
   CONSTRAINT fk_group FOREIGN KEY (group_id) REFERENCES groups(id),
   CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id)
 );
+
+
+
+CREATE TABLE messages(
+  id BIGINT UNSIGNED PRIMARY KEY,
+  recipient VARCHAR(255) NOT NULL,
+  message  VARCHAR(255) NOT NULL,
+  senderId VARCHAR(255) NOT NULL,
+  route VARCHAR(50) NOT NULL,
+  scheduled_time DATETIME,
+  user_id VARCHAR(50) NOT NULL,
+  username VARCHAR(50) NOT NULL,
+  created DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  status ENUM('scheduled', 'sent', 'failed') NOT NULL DEFAULT 'scheduled',
+  CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

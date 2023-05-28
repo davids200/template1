@@ -1,6 +1,6 @@
 import Cors from 'micro-cors'
 import {ApolloServer } from 'apollo-server-micro'
-
+import './cronJobs/index'
 const typeDefs = require('./typeDefs');
 const resolvers = require('./resolvers');
 

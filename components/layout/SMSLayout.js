@@ -27,7 +27,8 @@ HiCreditCard,
 HiPlusCircle,
 } from "react-icons/hi";
 
-import { useRouter } from "next/router"; 
+import { useRouter } from "next/router";  
+import { textEllipsis } from '../../lib/truncatedText'
 
 
 const SMSLayout = ({ children,session }) => {
@@ -61,24 +62,36 @@ router.push('/user/login')
   
 }
 
+let amount=9000
+const formattedAmount = amount.toLocaleString(undefined, {
+  style: 'currency',
+  currency: 'UGX',
+});
+ 
+const company="ICT Giants"
 
   return (
   <div className="flex flex-col absolute h-full w-screen">
   <header className="flex items-center justify-between bg-blue-900 px-2">
-  <div className="text-white font-bold text-xl flex flex-row mr-0">
+  <div className="text-white font-bold text-xl flex flex items-center mr-0">
 
-  <picture>
+  <picture >
   <img src={user?.photo_url || defaultPhoto} width={60} height={62} alt={user?.name} className=' rounded-sm ' />
-  </picture>  
-  <span className='ml-3 my-auto'>ICT Giants</span>
+  </picture> 
+   <div className='flex pl-5'>{textEllipsis(company,10)}</div> 
   </div>
-
+  
+ <div className='flex flex-1 justify-end text-right text-white pr-2'> 
+ <span className='p-1 rounded-lg text-white bg-red-700 text-bold'>Credits:&nbsp;{formattedAmount}</span>
+  </div>
+   
+  
   
 <nav className="hidden md:flex px-4 text-right">
 <Menu as="div" className="relative inline-block">
           <div className=''>
             <Menu.Button className="inline-flex w-full justify-center items-center">
- 
+  
 <span className="mx-1 hidden md:block font-medium text-white">
 {user?.email}  
 </span>
@@ -191,7 +204,7 @@ className={`${
 isMenuOpen ? 'block' : 'hidden'
 } md:block bg-blue-900 w-64 py-4 `}
 >
-
+ 
 
 <Menu as="div" className="relative inline-block z-50">
 <div className='py-5'>
@@ -201,7 +214,7 @@ isMenuOpen ? 'block' : 'hidden'
 <span className="md:block font-medium text-white">
 &nbsp;{user?.email} 
 </span>             
-</Menu.Button>
+</Menu.Button> 
 </div>
           
 
@@ -500,7 +513,7 @@ List
       </div> 
         </aside>
 
-        <div className="p3 overflow-y-auto h-full w-screen flex-1">  {children}  </div> 
+        <div className="p2 overflow-y-auto h-full w-screen flex-1">  {children}  </div> 
         {/* <main className="flex-1 p-4">{children}</main> */}
  
       </div>

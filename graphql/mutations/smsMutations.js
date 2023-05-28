@@ -24,16 +24,19 @@ mutation CreateContact($input: CreateContactInput!) {
   createContact(input: $input) {
     message
     created
+    
   }
 }
 `;
 
 
-export const SEND_GROUP_LISTS=gql`
- mutation SendGroupLists($input:[String!]!,$user:String!,$role:String!) {
-  sendGroupLists(input:$input,user:$user,role:$role) {
+export const SEND_SMS=gql`
+ mutation SendSMS($numbers:[String!],$country:String,$method:String!,$message:String!,$senderId:String!,$scheduledTime:DateTime,$user:String!,$role:String!) {
+  sendSMS(numbers:$numbers,country:$country,method:$method,message:$message,senderId:$senderId,scheduledTime:$scheduledTime,user:$user,role:$role) {
     message
     created
+    sent
+    cost
   }
   }
 `;

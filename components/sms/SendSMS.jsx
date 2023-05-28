@@ -3,7 +3,7 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from 'yup'; 
 import { useMutation,useQuery } from '@apollo/client'; 
 import {GET_ALL_GROUPS} from '../../graphql/queries/smsQueries'
-import { SEND_GROUP_LISTS }  from '../../graphql/mutations/smsMutations'
+import { SEND_SMS }  from '../../graphql/mutations/smsMutations'
 import { useDispatch,useSelector } from 'react-redux';
 import { toastSuccess,toastError } from '../../redux/slices/toastSlice';
 import CountrySelect from '../common/countries/CountrySelect';
@@ -19,7 +19,7 @@ const [selectedContacts, setSelectedContacts] = useState(0);
 const [pastedContactsLength, setPastedContactsLength] = useState(0);
 const [scheduledMessage, setScheduledMessage] = useState(false);
 const [date, setDate] = useState(new Date());
-const [ submitting,setSubmitting ]=useState(false)
+const [isSending, setIsSending] = useState(false);
 const [selectedOption, setSelectedOption] = useState("paste");
 const [selectedCheckboxes, setSelectedCheckboxes] = useState([]);  
 const [pastedNumbers, setPastedNumbers] = useState([]);
@@ -34,7 +34,7 @@ setCountry(country)
 const   { isAuthenticated,user } = useSelector(state => state.user);
 const dispatch=useDispatch()
 
-const [sendGroupLists] = useMutation(SEND_GROUP_LISTS, {
+const [sendSMS] = useMutation(SEND_SMS, {
   refetchQueries: [{ query: GET_ALL_GROUPS }],
   
 });
@@ -45,6 +45,7 @@ const { loading, error, data } = useQuery(GET_ALL_GROUPS, {
   // fetchPolicy: 'cache-and-network',
 });
 
+ 
 
 const initialValues = {
     senderId, 
@@ -68,6 +69,7 @@ const initialValues = {
 const onSubmit = async () => {    
 
 if(message && senderId){
+  setIsSending(true);
 
 if(selectedOption==="paste"){ 
 const textAreaValue = document.getElementById('phones').value;   
@@ -85,21 +87,18 @@ return
 }
 }
   
-
-console.log("initial values",initialValues);
-
 if(selectedOption==="groups"){   
-const response = await sendGroupLists({
+const response = await sendSMS({
 variables: {
-input:selectedCheckboxes,user:user.id,role:user.role
+numbers:selectedCheckboxes,country:'',method:'groups',message,senderId,scheduledTime,user:user.id,role:user.role
 },
 });    
 
-if(response.data.sendGroupLists.created){
-dispatch(toastSuccess(response.data.sendGroupLists.message))
+if(response?.data?.sendSMS?.created){
+dispatch(toastSuccess(response?.data?.sendSMS?.message))
 }  
 else{
-dispatch(toastError(response.data.sendGroupLists.message))
+dispatch(toastError(response?.data?.sendSMS?.message))
 }
 }// WHEN GROUPS CHECKED
 
@@ -108,22 +107,26 @@ dispatch(toastError(response.data.sendGroupLists.message))
 // //WHEN PASTED NUMBERS
 if(selectedOption==="paste"){ 
  
-const response = await sendGroupLists({
+const response = await sendSMS({
 variables: {
-input:pastedNumbers,user:user.id,role:user.role
+numbers:pastedNumbers,country,method:'paste',message,senderId:senderId.toUpperCase(),scheduledTime,user:user.id,role:user.role
 },
 });      
 
 
-if(response.data.sendGroupLists.created){
-dispatch(toastSuccess(response.data.sendGroupLists.message))
+if(response?.data?.sendSMS?.created){
+dispatch(toastSuccess(response?.data?.sendSMS?.message))
 }  
 else{
-dispatch(toastError(response.data.sendGroupLists.message))
+dispatch(toastError(response?.data?.sendSMS?.message))
 }
 }//PASTED NUMBERS
 
 }
+
+setTimeout(() => {
+  setIsSending(false);
+}, 3000);
 } //submitted
 
 
@@ -377,6 +380,7 @@ className="form-checkbox h-5 w-4 rounded-xl text-blue-800"
 id="message"
 name="message"
 maxLength={160}
+rows={3}
 className={` p-1 block w-full h-32 border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 resize-none }`}
 //   value={text}
 onChange={handleMessageChange}
@@ -429,12 +433,22 @@ className="block w-full px-4 py-2 text-gray-700 placeholder-gray-400 border bord
 
 
 <div className="mt-6">
-<button type="submit" 
-disabled={submitting} 
+{/* <button type="submit" 
+disabled={isSending} 
 onClick={onSubmit}
 className="px-4 py-2 cursor-pointer bg-indigo-500 text-white rounded-md hover:bg-indigo-600 focus:outline-none focus:bg-indigo-600">
 Send SMS
-</button>
+</button> */}
+
+<button
+      onClick={onSubmit}
+      className={`bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition-colors duration-300 ${
+        isSending ? 'opacity-50 cursor-not-allowed' : 'opacity-100 cursor-pointer'
+      }`}
+      disabled={isSending}
+    >
+      {isSending ? 'Sending SMS...' : 'Send SMS'}
+    </button>
 </div>
 
 </Form>

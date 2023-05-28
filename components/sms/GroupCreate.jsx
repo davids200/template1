@@ -12,6 +12,7 @@ import { useRouter } from 'next/router';
 const GroupCreate = () => {
 const [name,setName]=useState('')
 const [country,setCountry]=useState(countries[0].name)
+const [isSubmitting, setIsSubmitting] = useState(false);
 //const [createGroup,data] = useMutation(CREATE_GROUP);
 
 const [createGroup, { data }] = useMutation(CREATE_GROUP, {
@@ -32,8 +33,16 @@ setCountry(country)
 
 
 const handleSubmit = async(event) => {
+  setIsSubmitting(true)
 event.preventDefault();
- 
+
+
+if(name.length<1){
+  setIsSubmitting(false)
+  dispatch(toastError("Invalid group name!")) 
+  return
+}
+
 const response = await createGroup({
   variables: {
   input:{
@@ -46,13 +55,14 @@ const response = await createGroup({
   },
   });
   
-  if(response.data.createGroup.created){
+  if(response.data.createGroup.created){    
     dispatch(toastSuccess(response.data.createGroup.message))
-  // window.location.reload()
-   //router.push('/sms/groups-list')
+    setIsSubmitting(false)
   }  
   else{
     dispatch(toastError(response.data.createGroup.message))
+    setIsSubmitting(false)
+   
   }
 };
 
@@ -61,20 +71,20 @@ const response = await createGroup({
 return (
 <>
   
-<div className='w-full p-2'> 
+<div className='p-2'> 
 <h3 className='text-white'>Create Group</h3>
-<form className="bg-gray-50  rounded-lg p-2" onSubmit={handleSubmit}>
+<form className="bg-gray-700 text-white rounded-lg p-3" onSubmit={handleSubmit}>
   
  
-  <div className="items-center ">
-    <div className="w-full">
-    <label className="" >
+  <div className="items-center">
+    <div className="">
+    <label className=" font-bold " >
       Group Name:
       </label>  
     </div>
-    <div className="w-full mb-3">
+    <div className=" mb-3">
       <input 
-      className="bg-white appearance-none border-2 border-gray-200 rounded-md w-full py-1 px-2 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-purple-500" 
+      className=" w-full bg-white appearance-none border-2 border-gray-200 rounded-md  py-1 px-2 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-purple-500" 
       id="name" 
       type="text" 
       value={name}
@@ -85,24 +95,30 @@ return (
 
 
   <div className="items-center mb-3 sm:text-md">
-    <div className="w-full">
-      <label className="block text-gray-500 font-bold mb-1 md:mb-0 pr-2" htmlFor="inline-password">
+    <div className="">
+      <label className="w-full block text-white font-bold mb-1 md:mb-0 pr-2" htmlFor="inline-password">
         Country:
       </label>
     </div>
-    <div className="md:w-full">   
+    <div className="w-full">   
     <CountrySelect countries={countries} onChange={handleCountryChange} />
     </div>
   </div> 
   
  
   <div className="relative items-center">
-    <div className="w-full">
+    <div className="">
+ 
     <button
-type="submit"
-className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-Submit
-</button>
+       
+      className={`bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition-colors duration-300 ${
+        isSubmitting ? 'opacity-50 cursor-not-allowed' : 'opacity-100 cursor-pointer'
+      }`}
+      disabled={isSubmitting}
+    >
+      {isSubmitting ? 'Submitting...' : 'Submit'}
+    </button>
+ 
     </div>
   </div>
 </form>

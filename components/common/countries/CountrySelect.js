@@ -13,12 +13,11 @@ const CountrySelect = ({ countries, onChange,countryCode }) => {
   
   return (
     <>    
-    <select  onChange={handleChange} className='w-full mr-2 block text-md mb-1 md:mb-0 p-2 rounded'>
+    <select  onChange={handleChange} className='w-full mr-2 text-black bg-blue-50 block text-md mb-1 md:mb-0 p-2 rounded'>
     <option  key={countries[0].code} defaultValue={countries[0].name}>        
           {countries[0].name}
         </option>
-      {countries.map((country) => (
-       
+      {countries.map((country) => (       
         <option key={country.code} value={country.code}>        
           {country.name}
         </option> 

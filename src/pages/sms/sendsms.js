@@ -11,9 +11,9 @@ export default function sendsms() {
   return (
     <>
     <SMSLayout>
-        <div>
+       
     <SendSMS/>
-    </div>
+   
     </SMSLayout>
     </>
   )

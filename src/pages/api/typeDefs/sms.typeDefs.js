@@ -28,6 +28,12 @@ type CreateContactResponse{
   message:String
   created:Boolean
 }
+type SentMessageResponse{
+  message:String
+  created:Boolean
+  sent:Int
+  cost:Float
+}
 
 type Contact {
   name: String!
@@ -72,7 +78,7 @@ type Query {
   uploadGroupContacts(contacts: [ContactUpload!]!): CreateContactResponse
   createGroup(input: CreateGroupInput!): CreateGroupResponse!  
   createContact(input: CreateContactInput!): CreateContactResponse! 
-  sendGroupLists(input:[String!]!,user:String!,role:String!):CreateContactResponse 
+  sendSMS(numbers:[String!],country:String,method:String!,message:String!,senderId:String!,scheduledTime:DateTime,user:String!,role:String!):SentMessageResponse 
   } 
 `;
 
